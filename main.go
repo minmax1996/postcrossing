@@ -2,8 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -21,7 +19,7 @@ func main() {
 
 	r := httprouter.New()
 
-	r.POST("/post/", myHandler)
+	r.POST("/post", myHandler)
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Println(err)
@@ -29,31 +27,37 @@ func main() {
 }
 
 func myHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	bBody, errR := ioutil.ReadAll(r.Body)
-	if errR != nil {
-		io.WriteString(w, fmt.Sprintf("error in reading body"))
+	bBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("error in reading body"))
 		return
 	}
+
 	request := make(map[string]interface{})
 	if err := json.Unmarshal(bBody, &request); err != nil {
-		io.WriteString(w, fmt.Sprintf("error in unmarshalling json body"))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("error in unmarshalling json body"))
 		return
 	}
 
 	if request["from"] == nil {
-		io.WriteString(w, fmt.Sprintf("Please tell me who you are. just type in \"from\" json field name / email / twitter / etc"))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Please tell me who you are. just type in \"from\" json field name / email / twitter / etc"))
 		return
 	}
 
-	if err := SavePostcard(request); err != nil {
+	if err = savePostcard(request); err != nil {
 		log.Println("[ERROR]: error in savePostcard" + err.Error())
-		io.WriteString(w, fmt.Sprintf("some error in saving your postcard"))
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("some error in saving your postcard"))
 		return
 	}
-	io.WriteString(w, "Hello friend, I got your post! Have a great day")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Hello friend, I got your post! Have a great day"))
 }
 
-func SavePostcard(request map[string]interface{}) error {
+func savePostcard(request map[string]interface{}) error {
 	f, err := os.OpenFile("./postcards/"+request["from"].(string), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Println(err)
@@ -73,12 +77,12 @@ func SavePostcard(request map[string]interface{}) error {
 		log.Println(err)
 		return err
 	}
-	Notify("You got postcard from " + request["from"].(string))
+	notify("You got postcard from " + request["from"].(string))
 
 	return nil
 }
 
-func Notify(message string) {
+func notify(message string) {
 	if len(discord_url) == 0 {
 		return
 	}

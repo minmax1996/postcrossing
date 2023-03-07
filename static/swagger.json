@@ -1,0 +1,56 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "POSTcrossing",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/post": {
+            "post": {
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "from"
+                                ],
+                                "properties": {
+                                    "from": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "example": {
+                                "from": "MyOldFriend",
+                                "message": "Hello Friend",
+                                "picture_url": "https://ar.culture.ru/attachments/attachment/preview/5db2175c247f6b7312e21ef4-preview.jpg",
+                                "return_url": "https://example.com",
+                                "stamp_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Stamp_Mozambique_1933_10c.jpg/190px-Stamp_Mozambique_1933_10c.jpg"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "text": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "example": "Hello friend, I got your post! Have a great day"
+                            }
+                        },
+                        "description": "Success"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        }
+    }
+}
