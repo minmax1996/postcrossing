@@ -3,6 +3,9 @@ PWD = $(pwd)
 docker-build:
 	docker build -t minmax1996/postcrossing:latest .
 
+docker-push:
+	docker push minmax1996/postcrossing:latest
+
 docker-run:
 	docker run -d -p 8080:8080 -v $(shell pwd)/postcards:/postcards/ minmax1996/postcrossing:latest
 
